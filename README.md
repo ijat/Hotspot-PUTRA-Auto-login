@@ -8,3 +8,7 @@
 
 * To compile to exe:
 1. Use PyInstaller and run `python pyinstaller.py ..\Source\hotspot.py`
+
+Icon from
+https://www.iconfinder.com/icons/1053670/communication_connection_fi_reception_signal_wi_wifi_icon#size=128
+by https://www.iconfinder.com/Ikonografia

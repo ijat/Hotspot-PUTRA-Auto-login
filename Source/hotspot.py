@@ -33,6 +33,9 @@ def login():
     time.sleep(2)
 
 def network_check():
+    while (not check_upm_wifi()):
+        print("Retrying in 5 seconds...")
+        time.sleep(5)
     if check_connectivity("https://google.com/"):
         print( "[" + str(datetime.now()) + "] Network status: OK")
     else:
@@ -70,7 +73,7 @@ def main():
             time.sleep(2)
             main()
     except:
-        print
+        main()
 
     schedule.every(5).seconds.do(network_check)
 

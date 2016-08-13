@@ -1,4 +1,4 @@
-import requests, sys, urllib, time, getpass, schedule, signal
+import requests, urllib, time, getpass, schedule, signal
 from datetime import datetime
 
 user_data = dict()
@@ -28,8 +28,8 @@ def login():
         'password': None,
         'user': None
     }
-    session = requests.session()
-    r = requests.post(URL, data=payload)
+    #session = requests.session()
+    requests.post(URL, data=payload)
     time.sleep(2)
 
 def network_check():

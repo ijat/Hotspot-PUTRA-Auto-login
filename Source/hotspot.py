@@ -57,7 +57,7 @@ def main():
     else:
         print( "[" + str(datetime.now()) + "] Network status: ERROR -- Please reenter your login credential.")
         time.sleep(2)
-        login()
+        main()
 
     schedule.every(5).seconds.do(network_check)
 

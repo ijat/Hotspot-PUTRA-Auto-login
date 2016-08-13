@@ -42,6 +42,13 @@ def network_check():
         login()
         network_check()
 
+def check_upm_wifi():
+    if not check_connectivity("https://authenticate.upm.my/"):
+        print("You're not connected to Hotspot@UPM")
+        return False
+    else:
+        return True
+
 def main():
         #print(sys.argv)
     try:
@@ -51,13 +58,19 @@ def main():
     except:
         print("Invalid input")
         exit(100)
-    login()
-    if check_connectivity("https://ijat.my/"):
-        print( "[" + str(datetime.now()) + "] Network status: OK")
-    else:
-        print( "[" + str(datetime.now()) + "] Network status: ERROR -- Please reenter your login credential.")
-        time.sleep(2)
-        main()
+    try:
+        while (not check_upm_wifi()):
+            print("Detecting Hotspot@UPM in 5 seconds...")
+            time.sleep(5)
+        login()
+        if check_connectivity("https://ijat.my/"):
+            print( "[" + str(datetime.now()) + "] Network status: OK")
+        else:
+            print( "[" + str(datetime.now()) + "] Network status: ERROR -- Please reenter your login credential.")
+            time.sleep(2)
+            main()
+    except:
+        print
 
     schedule.every(5).seconds.do(network_check)
 

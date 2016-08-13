@@ -3,11 +3,15 @@
 
 ## To run the script:
 1. Install Python 3
-2. Pip install requests schedule
-3. Python hotspot.py
+2. `pip install requests schedule`
+3. `python hotspot.py`
 
 ## To compile to exe:
-1. Use PyInstaller and run `python pyinstaller.py ..\Source\hotspot.py`
+Use PyInstaller and run `python pyinstaller.py ..\Source\hotspot.py`
+
+OR
+
+Double click on `compile.bat' in PyInstaller folder.
 
 ## Icon from
 https://www.iconfinder.com/icons/1053670/communication_connection_fi_reception_signal_wi_wifi_icon#size=128

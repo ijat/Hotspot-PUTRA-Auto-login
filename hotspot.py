@@ -1,9 +1,8 @@
 #!/bin/python3
 
 import sys, argparse
-
 sys.path.append('modules')
-import login
+import login, guiState
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -27,16 +26,15 @@ if __name__ == '__main__':
                         nargs='?',
                         help='Auto reset interface when there are no connection after 3 times check (LINUX ONLY)')
 
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 2.0')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 2.0.2')
 
     args = parser.parse_args()
-    print(args)
 
     if args.nogui:
-# No GUI handler
-# else:
-# GUI handler
-#
+        guiState.splitState(args.nogui, args)
+    else:
+        guiState.splitState()
+
 
 # user = login.HotspotUPM("172205", "bonbon")
 # user.connect()

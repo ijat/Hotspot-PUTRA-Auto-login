@@ -25,10 +25,12 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--user',
                         type=int,
                         nargs='?',
+                        default=None,
                         help='Your username')
     parser.add_argument('-p', '--passwd',
                         type=str,
                         nargs='?',
+                        default=None,
                         help='Your password')
     parser.add_argument('-r', '--reset',
                         nargs='?',
@@ -39,7 +41,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.nogui:
+    if args.nogui and args.user and args.passwd:
         guiState.splitState(args.nogui, args)
     else:
         guiState.splitState()

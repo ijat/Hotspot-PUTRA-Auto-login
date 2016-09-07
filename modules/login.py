@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
-import uuid, time, socket, os, platform
+import uuid, socket
 from aes import *
 import requests
+from Network import *
 
 
 class HotspotUPMError(Exception):
@@ -14,7 +15,7 @@ class HotspotUPM:
     def __init__(self, u, p):
         self.__password_raw = p
 
-        self.__uid = uuid.uuid5(uuid.NAMESPACE_DNS, u)
+        self.__uid = uuid.uuid5(uuid.NAMESPACE_DNS, str(u))
         self.__uid = str(self.__uid).replace("-", "")
 
         __o_aes = AESCipher(self.__uid)
@@ -68,14 +69,4 @@ class HotspotUPM:
         print("Decrypted\t: {0}".format(dec_data))
 
 
-def isUp(hostname):
-    giveFeedback = False
-    if platform.system() == "Windows":
-        response = os.system("ping " + hostname + " -n 1 > nul")
-    else:
-        response = os.system("ping -c 1 " + hostname + " > /dev/null")
-    isUpBool = False
-    if response == 0:
-        isUpBool = True
 
-    return isUpBool

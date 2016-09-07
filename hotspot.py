@@ -1,10 +1,18 @@
 #!/bin/python3
 
-import sys, argparse
+import sys, argparse, signal
 sys.path.append('modules')
 import login, guiState
 
+
+def signal_handler(signal, frame):
+    print('== Bye! ==')
+    exit()
+
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+
     parser = argparse.ArgumentParser(
         epilog='Do use GUI version if you\'re unsure. Command line is for experts only. Some commands only supported in Linux',
         prog='Hotspot@UPM Auto Login',
@@ -18,12 +26,13 @@ if __name__ == '__main__':
                         type=int,
                         nargs='?',
                         help='Your username')
-    parser.add_argument('-p', '--pass',
+    parser.add_argument('-p', '--passwd',
                         type=str,
                         nargs='?',
                         help='Your password')
     parser.add_argument('-r', '--reset',
                         nargs='?',
+                        default=None,
                         help='Auto reset interface when there are no connection after 3 times check (LINUX ONLY)')
 
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 2.0.2')

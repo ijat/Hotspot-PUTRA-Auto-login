@@ -2,13 +2,14 @@
 
 from tkinter import *
 import webbrowser, time
+import sec, uuid, aes
 from datetime import datetime
 
 guiVer = "2.0.0.2"
 
 
 class App:
-    def __init__(self):
+    def __init__(self, u=None, p=None):
         self.root = Tk()
 
         self.root.title("Hotspot@UPM Auto Login")
@@ -40,15 +41,17 @@ class App:
         self.e2 = Entry(self.root, bd=2, justify=CENTER, show="*", width=22)
         self.e2.grid(row=2, column=0, sticky=E, padx=15)
 
-        CheckVar1 = IntVar()
-        c1 = Checkbutton(self.root, text="Remember Me", variable=CheckVar1,
+        self.c1Var = IntVar()
+        self.c1 = Checkbutton(self.root, text="Remember Me", variable=self.c1Var,
                          onvalue=1, offvalue=0, width=14)
-        c1.grid(row=3, column=0, sticky=E)
+        self.c1.grid(row=3, column=0, sticky=E)
 
         self.b1Text = StringVar()
-        b1 = Button(self.root, textvariable=self.b1Text, width=40)
-        b1.grid(row=4, column=0, sticky=N, pady=13)
         self.b1Text.set("Connect")
+
+        self.b1 = Button(self.root, textvariable=self.b1Text, width=40, command=self.b1Pressed)
+        self.b1.grid(row=4, column=0, sticky=N, pady=13)
+        # self.b1.bind("<Button-1>", self.b1Pressed)
 
         self.statusText = StringVar()
 
@@ -66,12 +69,38 @@ class App:
     def passType(self, event):
         print(self.e2.get())
 
+    def b1Pressed(self):
+        if (self.c1Var.get()):
+            print(self.e1.get())
+            print(self.e2.get())
+            self.user_save(self.e1.get(), self.e2.get())
+
+        if self.b1Text.get() == "Connect":
+            self.e1.configure(state=DISABLED)
+            self.e2.configure(state=DISABLED)
+            self.c1.configure(state=DISABLED)
+            self.b1.configure(state=DISABLED)
+            self.b1Text.set("Disconnect")
+        else:
+            self.e1.configure(state=NORMAL)
+            self.e2.configure(state=NORMAL)
+            self.b1Text.set("Connect")
+
     def GoWeb(self):
         webbrowser.open("https://ijat.my", new=0, autoraise=True)
 
     def GoWeb2(self):
         webbrowser.open("https://ijat.my/hotspotputra-auto-login", new=0, autoraise=True)
 
+    def user_save(self, u, p):
+        self.__u_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, __file__)
+        self.__u_uuid = str(self.__u_uuid).replace("-", "")
+        print(self.__u_uuid)
+
+        fh = open(".user.dat", "w")
+        fh.write("hahaha")
+
 
 def Run():
+    luser = sec.SecFile()
     app = App()

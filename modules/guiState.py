@@ -21,7 +21,7 @@ def commandLineRun(args):
 
         if isUp("authenticate.upm.my"):
 
-            if not isUp("ijat.my"):
+            if not isUp("ping.ijat.my"):
                 user = login.HotspotUPM(args.user, args.passwd)
                 user.connect()
             else:

@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
 from tkinter import *
+from Network import *
 import webbrowser, time
-import sec, uuid, aes
+import uuid, aes, dmidecode, os
 from datetime import datetime
 
 guiVer = "2.0.0.2"
@@ -10,6 +11,8 @@ guiVer = "2.0.0.2"
 
 class App:
     def __init__(self, u=None, p=None):
+        self.status = None
+
         self.root = Tk()
 
         self.root.title("Hotspot@UPM Auto Login")
@@ -18,9 +21,9 @@ class App:
         self.root.minsize(300, 300)
 
         img = PhotoImage(file="res/upm.png")  # reference PhotoImage in local variable
-        img_on = PhotoImage(file="res/on.png")
-        img_off = PhotoImage(file="res/off.png")
-        img_alert = PhotoImage(file="res/alert.png")
+        self.img_on = PhotoImage(file="res/on.png")
+        self.img_off = PhotoImage(file="res/off.png")
+        self.img_alert = PhotoImage(file="res/alert.png")
 
         menubar = Menu(self.root)
         filemenu = Menu(menubar, tearoff=0)
@@ -33,12 +36,14 @@ class App:
 
         Label(self.root, text="Matric No: ", font=(None, 10), width=16).grid(row=1, column=0, sticky=W, pady=5)
 
-        self.e1 = Entry(self.root, bd=2, justify=CENTER, width=22)
+        self.e1Var = StringVar()
+        self.e1 = Entry(self.root, bd=2, justify=CENTER, width=22, textvariable=self.e1Var)
         self.e1.grid(row=1, column=0, sticky=E, padx=15)
 
         Label(self.root, text="Password: ", font=(None, 10), width=16).grid(row=2, column=0, sticky=W)
 
-        self.e2 = Entry(self.root, bd=2, justify=CENTER, show="*", width=22)
+        self.e2Var = StringVar()
+        self.e2 = Entry(self.root, bd=2, justify=CENTER, show="*", width=22, textvariable=self.e2Var)
         self.e2.grid(row=2, column=0, sticky=E, padx=15)
 
         self.c1Var = IntVar()
@@ -55,12 +60,25 @@ class App:
 
         self.statusText = StringVar()
 
-        Label(self.root, image=img_alert, font=(None, 8)).grid(row=5, column=0, sticky=W, padx=3)
-        self.statusText.set("[" + time.strftime("%H:%M:%S") + "] Enter your credentials")
+        self.stat_icon = Label(self.root, font=(None, 8), image=self.img_alert)
+        self.stat_icon.grid(row=5, column=0, sticky=W, padx=3)
+        self._img = self.img_alert
 
-        Label(self.root, textvariable=self.statusText, font=(None, 9)).grid(row=5, column=0, sticky=W, padx=40)
+        self.statusText.set("Enter your credentials")
+        Label(self.root, textvariable=self.statusText, font=("Consolas", 9)).grid(row=5, column=0, sticky=N, padx=40)
 
         self.root.config(menu=menubar)
+
+        (eusr, epwd) = self.user_conf()
+        if (eusr) and (epwd):
+            (self.u, self.p) = self.user_load(eusr, epwd)
+            self.e1Var.set(self.u)
+            self.e2Var.set(self.p)
+            self.c1Var.set(1)
+            self.remember = True
+        else:
+            self.remember = False
+
         self.root.mainloop()
 
     def userType(self, event):
@@ -70,10 +88,29 @@ class App:
         print(self.e2.get())
 
     def b1Pressed(self):
+        print(self.status)
+        if (self.status == 0) or (self.status == 1):
+            print("status " + str(self.status))
+            self.root.after_cancel(self.__job)
+            self.__job = None
+            self.b1Text.set("Connect")
+            self.status = None
+
+            # Enable options
+            self.e1.configure(state=NORMAL)
+            self.e2.configure(state=NORMAL)
+            self.c1.configure(state=NORMAL)
+            self.b1.configure(state=NORMAL)
+
+            return 0
+
         if (self.c1Var.get()):
-            print(self.e1.get())
-            print(self.e2.get())
             self.user_save(self.e1.get(), self.e2.get())
+        else:
+            try:
+                os.remove(".user.dat")
+            except:
+                pass
 
         if self.b1Text.get() == "Connect":
             self.e1.configure(state=DISABLED)
@@ -86,6 +123,50 @@ class App:
             self.e2.configure(state=NORMAL)
             self.b1Text.set("Connect")
 
+        # Connect engine
+        self.statusText.set("Connecting...")
+        self.status = 0
+        self.reconnect()
+        # self.b1.configure(state=NORMAL)
+
+    def reconnect(self):
+        print(time.strftime("%H:%M:%S"))
+        if self.status == 1:
+            self.b1Text.set("Disconnect")
+            self.b1.configure(state=NORMAL)
+        elif self.status == 0:
+            self.b1Text.set("Stop")
+            self.b1.configure(state=NORMAL)
+        else:
+            self.b1Text.set("Connect")
+            return 0
+
+        if isUp("authenticate.upm.my"):
+            if not isUp("ping.ijat.my"):
+                self.user = login.HotspotUPM(self.u, self.p)
+                self.user.connect()
+            else:
+                self.statusText.set("Already connected to Hotspot@UPM\nLast update on " + time.strftime("%H:%M:%S"))
+            self.status = 1
+            self.__job = self.root.after(100, self.reconnect)
+        else:
+            self.statusText.set("Not connected to Hotspot@UPM ?\nLast update on " + time.strftime("%H:%M:%S"))
+            self.change_status_icon(0)
+            self.status = 0
+
+        self.__job = self.root.after(3000, self.reconnect)
+
+    def change_status_icon(self, icon):
+        if icon == 0:
+            self.stat_icon.configure(image=self.img_off)
+            self._img = self.img_off
+        elif icon == 1:
+            self.stat_icon.configure(image=self.img_on)
+            self._img = self.img_on
+        else:
+            self.stat_icon.configure(image=self.img_alert)
+            self._img = self.img_alert
+
     def GoWeb(self):
         webbrowser.open("https://ijat.my", new=0, autoraise=True)
 
@@ -93,14 +174,52 @@ class App:
         webbrowser.open("https://ijat.my/hotspotputra-auto-login", new=0, autoraise=True)
 
     def user_save(self, u, p):
-        self.__u_uuid = uuid.uuid5(uuid.NAMESPACE_DNS, __file__)
-        self.__u_uuid = str(self.__u_uuid).replace("-", "")
-        print(self.__u_uuid)
+        hwid = dmidecode.get_id()
+
+        eusr = aes.AESCipher(hwid)
+        s_eusr = eusr.encrypt(u)
+        s_eusr = bytes(s_eusr).decode()
+
+        kpswd = uuid.uuid5(uuid.NAMESPACE_DNS, s_eusr)
+        kpswd = str(kpswd).replace("-", "")
+
+        epsw = aes.AESCipher(kpswd)
+        s_epsw = epsw.encrypt(p)
+        s_epsw = bytes(s_epsw).decode()
 
         fh = open(".user.dat", "w")
-        fh.write("hahaha")
+        fh.write(s_eusr + "\n")
+        fh.write(s_epsw + "\n")
+        fh.close()
+
+        self.user_load(s_eusr, s_epsw)
+
+    def user_conf(self):
+        try:
+            fh = open(".user.dat", "r")
+            eusr = fh.readline().strip()
+            epsw = fh.readline().strip()
+            return eusr, epsw
+        except:
+            return "", ""
+
+    def timer(self):
+        print("haha\n")
+        # self.__job = self.root.after(1000, self.timer)
+
+    def user_load(self, eu, ep):
+        hwid = dmidecode.get_id()
+        dusr = aes.AESCipher(hwid)
+        s_dusr = dusr.decrypt(eu)
+
+        kpswd = uuid.uuid5(uuid.NAMESPACE_DNS, eu)
+        kpswd = str(kpswd).replace("-", "")
+
+        dpsw = aes.AESCipher(kpswd)
+        s_dpsw = dpsw.decrypt(ep)
+
+        return (s_dusr, s_dpsw)
 
 
 def Run():
-    luser = sec.SecFile()
     app = App()

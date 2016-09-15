@@ -4,6 +4,7 @@ from tkinter import *
 from Network import *
 import webbrowser, time
 import uuid, aes, dmidecode, os
+import login
 from datetime import datetime
 
 guiVer = "2.0.0.2"
@@ -126,7 +127,8 @@ class App:
         # Connect engine
         self.statusText.set("Connecting...")
         self.status = 0
-        self.reconnect()
+        # self.reconnect()
+        self.__job = self.root.after(500, self.reconnect)
         # self.b1.configure(state=NORMAL)
 
     def reconnect(self):
@@ -148,7 +150,7 @@ class App:
             else:
                 self.statusText.set("Already connected to Hotspot@UPM\nLast update on " + time.strftime("%H:%M:%S"))
             self.status = 1
-            self.__job = self.root.after(100, self.reconnect)
+            #self.__job = self.root.after(100, self.reconnect)
         else:
             self.statusText.set("Not connected to Hotspot@UPM ?\nLast update on " + time.strftime("%H:%M:%S"))
             self.change_status_icon(0)

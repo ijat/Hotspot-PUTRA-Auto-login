@@ -80,6 +80,7 @@ class App:
         else:
             self.remember = False
 
+        self.index = 0
         self.root.mainloop()
 
     def userType(self, event):
@@ -90,6 +91,7 @@ class App:
 
     def b1Pressed(self):
         print(self.status)
+
         if (self.status == 0) or (self.status == 1):
             print("status " + str(self.status))
             self.root.after_cancel(self.__job)
@@ -102,6 +104,9 @@ class App:
             self.e2.configure(state=NORMAL)
             self.c1.configure(state=NORMAL)
             self.b1.configure(state=NORMAL)
+
+            self.change_status_icon(2)
+            self.statusText.set("Disconnected!")
 
             return 0
 
@@ -118,45 +123,63 @@ class App:
             self.e2.configure(state=DISABLED)
             self.c1.configure(state=DISABLED)
             self.b1.configure(state=DISABLED)
-            self.b1Text.set("Disconnect")
+            self.b1Text.set("Stop")
         else:
             self.e1.configure(state=NORMAL)
             self.e2.configure(state=NORMAL)
             self.b1Text.set("Connect")
 
         # Connect engine
-        self.statusText.set("Connecting...")
+        self.statusText.set("Connecting #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
         self.status = 0
-        # self.reconnect()
-        self.__job = self.root.after(500, self.reconnect)
-        # self.b1.configure(state=NORMAL)
+        self.root.after(10, self.reconnect)
 
     def reconnect(self):
         print(time.strftime("%H:%M:%S"))
-        if self.status == 1:
-            self.b1Text.set("Disconnect")
-            self.b1.configure(state=NORMAL)
-        elif self.status == 0:
-            self.b1Text.set("Stop")
-            self.b1.configure(state=NORMAL)
-        else:
+
+        if self.index > 2:
+            self.statusText.set("Failed after 3 retries\nCheck your login and password")
+            self.root.after_cancel(self.__job)
+            self.__job = None
+            self.status = None
             self.b1Text.set("Connect")
-            return 0
+            self.e1.configure(state=NORMAL)
+            self.e2.configure(state=NORMAL)
+            self.c1.configure(state=NORMAL)
+            self.b1.configure(state=NORMAL)
+            self.index = 0
 
         if isUp("authenticate.upm.my"):
             if not isUp("ping.ijat.my"):
                 self.user = login.HotspotUPM(self.u, self.p)
-                self.user.connect()
+                self.root.after(1000, self.user_connect)
+                self.status = 0
             else:
-                self.statusText.set("Already connected to Hotspot@UPM\nLast update on " + time.strftime("%H:%M:%S"))
-            self.status = 1
-            #self.__job = self.root.after(100, self.reconnect)
+                self.status = 1
         else:
-            self.statusText.set("Not connected to Hotspot@UPM ?\nLast update on " + time.strftime("%H:%M:%S"))
+            self.statusText.set("Not connected to Hotspot@UPM ?\nLast updated on " + time.strftime("%H:%M:%S"))
             self.change_status_icon(0)
             self.status = 0
 
-        self.__job = self.root.after(3000, self.reconnect)
+        if self.status == 1:
+            self.b1Text.set("Stop")
+            self.statusText.set("Connected\nLast updated on " + time.strftime("%H:%M:%S"))
+            self.change_status_icon(1)
+            self.b1.configure(state=NORMAL)
+        elif self.status == 0:
+            self.statusText.set("Connecting #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
+            self.b1Text.set("Stop")
+            self.change_status_icon(3)
+            self.b1.configure(state=NORMAL)
+            self.index += 1
+        else:
+            self.b1Text.set("Connect")
+            return 0
+
+        self.__job = self.root.after(5000, self.reconnect)
+
+    def user_connect(self):
+        self.user.connect()
 
     def change_status_icon(self, icon):
         if icon == 0:

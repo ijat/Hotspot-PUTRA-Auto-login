@@ -57,7 +57,6 @@ class App:
 
         self.b1 = Button(self.root, textvariable=self.b1Text, width=40, command=self.b1Pressed)
         self.b1.grid(row=4, column=0, sticky=N, pady=13)
-        # self.b1.bind("<Button-1>", self.b1Pressed)
 
         self.statusText = StringVar()
 
@@ -77,6 +76,7 @@ class App:
             self.e2Var.set(self.p)
             self.c1Var.set(1)
             self.remember = True
+            self.statusText.set("Click Connect to start")
         else:
             self.remember = False
 
@@ -90,12 +90,12 @@ class App:
         print(self.e2.get())
 
     def b1Pressed(self):
-        print(self.status)
-
         if (self.status == 0) or (self.status == 1):
-            print("status " + str(self.status))
-            self.root.after_cancel(self.__job)
-            self.__job = None
+            try:
+                self.root.after_cancel(self.__job)
+                self.__job = None
+            except:
+                pass
             self.b1Text.set("Connect")
             self.status = None
 
@@ -106,9 +106,12 @@ class App:
             self.b1.configure(state=NORMAL)
 
             self.change_status_icon(2)
-            self.statusText.set("Disconnected!")
+            self.statusText.set("Click Connect to start")
 
             return 0
+
+        self.u = self.e1.get()
+        self.p = self.e2.get()
 
         if (self.c1Var.get()):
             self.user_save(self.e1.get(), self.e2.get())
@@ -130,24 +133,28 @@ class App:
             self.b1Text.set("Connect")
 
         # Connect engine
-        self.statusText.set("Connecting #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
+        self.statusText.set("Connecting... #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
         self.status = 0
+        self.first = True
         self.root.after(10, self.reconnect)
 
     def reconnect(self):
-        print(time.strftime("%H:%M:%S"))
-
-        if self.index > 2:
-            self.statusText.set("Failed after 3 retries\nCheck your login and password")
-            self.root.after_cancel(self.__job)
-            self.__job = None
-            self.status = None
-            self.b1Text.set("Connect")
-            self.e1.configure(state=NORMAL)
-            self.e2.configure(state=NORMAL)
-            self.c1.configure(state=NORMAL)
-            self.b1.configure(state=NORMAL)
-            self.index = 0
+        if (self.index > 2) and self.first:
+            try:
+                self.statusText.set("Failed after 3 retries\nCheck your login and password")
+                self.root.after_cancel(self.__job)
+                self.__job = None
+                self.status = 0
+                self.b1Text.set("Connect")
+                self.e1.configure(state=NORMAL)
+                self.e2.configure(state=NORMAL)
+                self.c1.configure(state=NORMAL)
+                self.b1.configure(state=NORMAL)
+                self.index = 0
+            except:
+                pass
+            finally:
+                return 0
 
         if isUp("authenticate.upm.my"):
             if not isUp("ping.ijat.my"):
@@ -155,19 +162,25 @@ class App:
                 self.root.after(1000, self.user_connect)
                 self.status = 0
             else:
+                self.first = False
                 self.status = 1
         else:
             self.statusText.set("Not connected to Hotspot@UPM ?\nLast updated on " + time.strftime("%H:%M:%S"))
             self.change_status_icon(0)
             self.status = 0
+            self.__job = self.root.after(4567, self.reconnect)
+            self.b1.configure(state=NORMAL)
+            return 0
 
         if self.status == 1:
             self.b1Text.set("Stop")
             self.statusText.set("Connected\nLast updated on " + time.strftime("%H:%M:%S"))
             self.change_status_icon(1)
             self.b1.configure(state=NORMAL)
+            self.index = 0
         elif self.status == 0:
-            self.statusText.set("Connecting #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
+            self.statusText.set(
+                "Connecting... #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
             self.b1Text.set("Stop")
             self.change_status_icon(3)
             self.b1.configure(state=NORMAL)
@@ -176,10 +189,10 @@ class App:
             self.b1Text.set("Connect")
             return 0
 
-        self.__job = self.root.after(5000, self.reconnect)
+        self.__job = self.root.after(15000, self.reconnect)
 
     def user_connect(self):
-        self.user.connect()
+        self.user.async_connect()
 
     def change_status_icon(self, icon):
         if icon == 0:
@@ -227,10 +240,6 @@ class App:
             return eusr, epsw
         except:
             return "", ""
-
-    def timer(self):
-        print("haha\n")
-        # self.__job = self.root.after(1000, self.timer)
 
     def user_load(self, eu, ep):
         hwid = dmidecode.get_id()

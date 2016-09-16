@@ -7,7 +7,7 @@ Opt("TrayMenuMode", 3)
 #include <TrayConstants.au3>
 #include <WinAPIProc.au3>
 
-Local $title = "Hotspot@UPM Auto Login Laucher"
+Local $title = "Hotspot@UPM Auto Login Launcher"
 Local $hMain
 Local $state
 
@@ -29,7 +29,6 @@ Func tray_clicked()
    Return 0
 EndFunc
 
-TraySetState($TRAY_ICONSTATE_HIDE)
 TraySetIcon("res\icon.ico")
 TraySetToolTip($title)
 
@@ -37,16 +36,24 @@ TraySetToolTip($title)
 Local $tSH = TrayCreateItem("Show/Hide")
 TrayCreateItem("")
 Local $tExit = TrayCreateItem("Exit")
+;TraySetState($TRAY_ICONSTATE_HIDE)
 
+TrayTip($title,"Please wait...",3.45,1)
 Run("hotspot.exe","", @SW_HIDE)
 
+Local $index = 0
 Do
+   if $index = 120 Then
+	  MsgBox(48,$title,"Error occured! Please report at GitHub issue page. Thank you")
+	  Exit
+   EndIf
    Sleep(250)
    $hMain = WinGetHandle("[TITLE:Hotspot@UPM Auto Login;CLASS:TkTopLevel]")
+   $index = $index + 1
 Until $hMain > 0
 
 TraySetOnEvent ( $TRAY_EVENT_PRIMARYDOUBLE, "tray_clicked" )
-TraySetState($TRAY_ICONSTATE_SHOW)
+;TraySetState($TRAY_ICONSTATE_SHOW)
 
 While 1
    Switch TrayGetMsg()
@@ -60,6 +67,7 @@ While 1
    Case Else
 	  $state = WinGetState($hMain)
 	  if $state == 23 Then
+		 TrayTip($title,"Minimized to tray.",3.45,1)
 		 WinSetState($hMain,"",@SW_HIDE)
 	  ElseIf $state == 0 Then
 		 WinClose($hMain)

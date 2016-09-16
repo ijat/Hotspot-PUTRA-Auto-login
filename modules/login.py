@@ -58,12 +58,7 @@ class HotspotUPM:
                 'user': None
             }
 
-            try:
-                _thread.start_new_thread(requests.post, (URL), data=payload)
-            except Exception as e:
-                pass
-
-            #requests.post(URL, data=payload)
+            requests.post(URL, data=payload)
             return True
 
         except Exception as e:

@@ -5,5 +5,5 @@ Man Pages
 :titlesonly:
        :glob:
 
-           man/pyinstaller
-           man/pyi-*
+                   man/pyinstaller
+                   man/pyi-*

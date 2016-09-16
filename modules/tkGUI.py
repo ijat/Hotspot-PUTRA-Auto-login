@@ -85,6 +85,8 @@ class App:
         self.__job = None
         self.user = None
 
+        self.root.bind('<Return>', (lambda e, b=self.b1: b.invoke()))
+
         self.root.mainloop()
 
     def userType(self, event):

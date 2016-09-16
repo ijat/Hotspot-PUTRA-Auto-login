@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
-import concurrent.futures
-from multiprocessing import dummy as multithreading
+# import concurrent.futures
+import _thread
 import uuid, socket
 from aes import *
 import requests
@@ -27,8 +27,11 @@ class HotspotUPM:
         self.__host = "authenticate.upm.my"
 
     def async_connect(self):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            executor.submit(self.connect)
+        try:
+            _thread.start_new_thread(self.connect, ())
+        except Exception as e:
+            pass
+
 
     def connect(self):
         try:
@@ -55,7 +58,12 @@ class HotspotUPM:
                 'user': None
             }
 
-            requests.post(URL, data=payload)
+            try:
+                _thread.start_new_thread(requests.post, (URL), data=payload)
+            except Exception as e:
+                pass
+
+            #requests.post(URL, data=payload)
             return True
 
         except Exception as e:

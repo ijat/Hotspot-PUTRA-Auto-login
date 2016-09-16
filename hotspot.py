@@ -1,14 +1,14 @@
 #!/bin/python3
 
-import sys, argparse, signal
+import sys
+import argparse, signal
 sys.path.append('modules')
-import login, guiState
+import guiState
 
 
 def signal_handler(signal, frame):
     print('== Bye! ==')
     exit()
-
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)
@@ -45,7 +45,3 @@ if __name__ == '__main__':
         guiState.splitState(args.nogui, args)
     else:
         guiState.splitState()
-
-
-# user = login.HotspotUPM("172205", "bonbon")
-# user.connect()

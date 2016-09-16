@@ -1,14 +1,13 @@
 #!/usr/bin/python3
 
+import _thread
 from tkinter import *
 from Network import *
 import webbrowser, time
 import uuid, aes, dmidecode, os
 import login
-from datetime import datetime
 
 guiVer = "2.0.0.2"
-
 
 class App:
     def __init__(self, u=None, p=None):
@@ -81,6 +80,11 @@ class App:
             self.remember = False
 
         self.index = 0
+        self.first = True
+        self.status = None
+        self.__job = None
+        self.user = None
+
         self.root.mainloop()
 
     def userType(self, event):
@@ -90,6 +94,10 @@ class App:
         print(self.e2.get())
 
     def b1Pressed(self):
+        if (not self.e1.get()) and (not self.e2.get()):
+            self.statusText.set("ENTER YOUR ID AND PASSWORD\nNOOB! xD")
+            return 0
+
         if (self.status == 0) or (self.status == 1):
             try:
                 self.root.after_cancel(self.__job)
@@ -107,7 +115,7 @@ class App:
 
             self.change_status_icon(2)
             self.statusText.set("Click Connect to start")
-
+            self.index = 0
             return 0
 
         self.u = self.e1.get()
@@ -132,19 +140,27 @@ class App:
             self.e2.configure(state=NORMAL)
             self.b1Text.set("Connect")
 
-        # Connect engine
         self.statusText.set("Connecting... #" + str(self.index + 1) + "\nLast updated on " + time.strftime("%H:%M:%S"))
         self.status = 0
         self.first = True
-        self.root.after(10, self.reconnect)
+        self.change_status_icon(2)
+
+        self.root.after(10, self.async_recon)
+
+    def async_recon(self):
+        try:
+            _thread.start_new_thread(self.reconnect, ())
+        except:
+            pass
 
     def reconnect(self):
         if (self.index > 2) and self.first:
             try:
                 self.statusText.set("Failed after 3 retries\nCheck your login and password")
                 self.root.after_cancel(self.__job)
+                self.change_status_icon(0)
                 self.__job = None
-                self.status = 0
+                self.status = None
                 self.b1Text.set("Connect")
                 self.e1.configure(state=NORMAL)
                 self.e2.configure(state=NORMAL)
@@ -189,7 +205,7 @@ class App:
             self.b1Text.set("Connect")
             return 0
 
-        self.__job = self.root.after(15000, self.reconnect)
+        self.__job = self.root.after(15000, self.async_recon)
 
     def user_connect(self):
         self.user.async_connect()

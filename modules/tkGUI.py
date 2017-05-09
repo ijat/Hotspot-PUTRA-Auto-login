@@ -7,7 +7,7 @@ import webbrowser, time
 import uuid, aes, dmidecode, os
 import login
 
-guiVer = "2.0.0.2"
+guiVer = "2.1.0.0"
 
 class App:
     def __init__(self, u=None, p=None):
@@ -17,7 +17,7 @@ class App:
 
         self.root.title("Hotspot@UPM Auto Login")
         self.root.resizable(width=False, height=False)
-        self.root.iconbitmap("res/icon.ico")
+        #self.root.iconbitmap("res/icon.ico")
         self.root.minsize(300, 300)
 
         img = PhotoImage(file="res/upm.png")  # reference PhotoImage in local variable
@@ -156,9 +156,9 @@ class App:
             pass
 
     def reconnect(self):
-        if (self.index > 2) and self.first:
+        if (self.index > 19) and self.first:
             try:
-                self.statusText.set("Failed after 3 retries\nCheck your login and password")
+                self.statusText.set("Failed after 20 retries\nCheck your login and password")
                 self.root.after_cancel(self.__job)
                 self.change_status_icon(0)
                 self.__job = None
@@ -207,7 +207,7 @@ class App:
             self.b1Text.set("Connect")
             return 0
 
-        self.__job = self.root.after(15000, self.async_recon)
+        self.__job = self.root.after(1000, self.async_recon)
 
     def user_connect(self):
         self.user.async_connect()

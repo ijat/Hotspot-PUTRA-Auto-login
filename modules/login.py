@@ -6,6 +6,7 @@ import uuid, socket
 from aes import *
 import requests
 from Network import *
+import re
 
 
 class HotspotUPMError(Exception):
@@ -41,7 +42,21 @@ class HotspotUPM:
                 if not isUp(self.__ip):
                     return False
 
-            URL = 'https://' + self.__host + ':801/eportal/?c=ACSetting&a=Login&wlanuserip=null&wlanacip=null&wlanacname=null&port=&iTermType=1&mac=000000000000&redirect=null&session=null'
+
+            ip = None
+            url0 = 'https://authenticate.upm.edu.my/a70.htm'
+
+            # Find IP
+            s = requests.Session()
+            s0 = s.get(url0)
+            p = re.compile("v46ip=\\'([0-9.]*)")
+            ip = p.search(bytes(s0.content).decode('utf-8')).group(1)
+
+            # Updating data with new ip
+            cookies = {'ip': ip, 'vlan': '0', 'ssid': 'null', 'program': 'UPM170315'}
+            url1 = 'https://authenticate.upm.edu.my:801/eportal/?c=ACSetting&a=Login&wlanuserip=&wlanacip=null&wlanacname=null&port=&iTermType=1&mac=000000000000&ip={0}&redirect=null&session=null'.format(ip)
+
+            #URL = 'https://' + self.__host + ':801/eportal/?c=ACSetting&a=Login&wlanuserip=null&wlanacip=null&wlanacname=null&port=&iTermType=1&mac=000000000000&redirect=null&session=null'
             payload = {
                 'DDDDD': self.__username,
                 'upass': self.__password_raw,
@@ -58,7 +73,7 @@ class HotspotUPM:
                 'user': None
             }
 
-            requests.post(URL, data=payload)
+            requests.post(url1, data=payload, cookies=cookies)
             return True
 
         except Exception as e:
@@ -66,16 +81,12 @@ class HotspotUPM:
             # raise HotspotUPMError(self.__host, e)
 
     def __get_me(self):
-        print("Username\t: {0}\nPassword\t: {1}".format(self.__username, self.__password_raw))
         __uid = uuid.uuid5(uuid.NAMESPACE_DNS, self.__username)
         __uid = str(__uid).replace("-", "")
 
         o_aes = AESCipher(__uid)
         enc_data = o_aes.encrypt(self.__password_raw)
         dec_data = o_aes.decrypt(enc_data)
-
-        print("Encrypted\t: {0}".format(enc_data))
-        print("Decrypted\t: {0}".format(dec_data))
 
 
 
